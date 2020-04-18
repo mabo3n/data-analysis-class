@@ -21,7 +21,7 @@ data.describe()
 # Define os eixos
 x = data.Age
 y = data.Weight
-# Define as cores (claro/escuro dependendo do número de nascimentos)
+# Define as cores (claro/escuro dependendo do numero de nascimentos)
 colors = ['.8' if births < 20 else 'k' for births in data.Births]
 
 # Define a descricao de cada eixo
@@ -36,4 +36,68 @@ np.vectorize(plt.text)(x, y + .05, s=data.Births,
                        fontsize=8)
 # Exibe o grafico
 plt.show()
+
+# Explicacao do modelo linear simples
+# ...
+
+# Criando vetores de dados para facilitar o processo
+# x e y ja definidos acima
+weights = data.Births
+
+# Primeira tentativa de ajuste ------------------------------
+# (beta0 = intercepto, beta1 = coeficiente angular)
+beta0_A, beta1_A = -.9, .1
+
+# Ajustando o modelo...
+mu_A = beta0_A + beta1_A * x # Media (esta e a linha com os valores preditos)
+ss_A = np.sum(weights * (y - mu_A) ** 2) # Variancia (isto e a soma dos quadrados!)
+ss_A
+
+# Constroi o grafico
+plt.scatter(x, y, c=colors)
+ab_line = [beta0_A + beta1_A * x_i for x_i in x]
+plt.title(f'Tentativa 01 - SQR = {np.round(ss_A, 2)}')
+p01 = plt.plot(x, ab_line, color='r')
+
+# Exibe o grafico
+plt.show()
+
+# Segunda tentativa de ajuste -------------------------------
+# (beta0 = intercepto, beta1 = coeficiente angular)
+beta0_B, beta1_B = -3, .15
+
+# Ajustando o modelo...
+mu_B = beta0_B + beta1_B * x # Media (esta e a linha com os valores preditos)
+ss_B = np.sum(weights * (y - mu_B) ** 2) # Variancia (isto e a soma dos quadrados!)
+ss_B
+
+# Constroi o grafico
+plt.scatter(x, y, c=colors)
+ab_line = [beta0_B + beta1_B * x_i for x_i in x]
+plt.title(f'Tentativa 02 - SQR = {np.round(ss_B, 2)}')
+p02 = plt.plot(x, ab_line, color='r')
+
+# Exibe o grafico
+plt.show()
+
+# Terceira tentativa de ajuste -------------------------------
+# (beta0 = intercepto, beta1 = coeficiente angular)
+beta0_C, beta1_C = -2.678, .1538
+
+# Ajustando o modelo...
+mu_C = beta0_C + beta1_C * x # Media (esta e a linha com os valores preditos)
+ss_C = np.sum(weights * (y - mu_C) ** 2) # Variancia (isto e a soma dos quadrados!)
+ss_C
+
+# Constroi o grafico
+plt.scatter(x, y, c=colors)
+ab_line = [beta0_C + beta1_C * x_i for x_i in x]
+plt.title(f'Tentativa 03 - SQR = {np.round(ss_C, 2)}')
+p03 = plt.plot(x, ab_line, color='r')
+
+# Exibe o grafico
+plt.show()
+
+# Exibe a soma dos residuos de cada conjunto de parametros
+print(ss_A, ss_B, ss_C)
 
