@@ -1,35 +1,49 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from scipy.stats import linregress
-from scipy.optimize import curve_fit
+# --- Dependencias e configuracoes gerais ---
 
+
+# Importa bibliotecas necessarias
+import numpy as np                       # Computacao numerica
+import matplotlib.pyplot as plt          # Plotagem de graficos
+import pandas as pd                      # Manipulacao de datasets
+from scipy.stats import linregress       # Regressao linear
+from scipy.optimize import curve_fit     # Regressao nao-linear
+
+# Configura para nao cortar exibicao de datasets no terminal
 pd.options.display.max_columns = None
 pd.options.display.width = 200
 
+
+# --- Leitura e analise inicial do dataset ---
+
+
+# Le arquivo em um dataframe
 path = './covid19-Mar-18-2020.csv'
 data = pd.read_csv(path, sep=',', decimal='.', quotechar='\'')
 
+# Visao geral dos dados
 data.head(10)
 data.describe(include='all')
 
-data.date = pd.to_datetime(data.date)
+# Converte coluna de data para datetime
+data.date = floripa.date.apply(pd.to_datetime)
 
+# Exibe correlacao de casos confirmados com populacao estimada
 data[['confirmed', 'estimated_population_2019']].corr()
+
+# Exibe grafico de dispersao entre casos confirmados e populacao estimada
 plt.scatter(data.estimated_population_2019, data.confirmed)
 plt.show()
 
-# --- Dados de floripa ---
 
+# --- Analise dos dados de floripa ---
+
+
+# Filtro de dados onde a cidade contem "Floria", ignorando NA
 floripa = data[data.city.str.contains('Floria', na=False)]
+
+# Visao geral dos dados de Floripa
 floripa.head()
 floripa.describe()
-
-# Converte campo de data para datetime
-floripa.date = floripa.date.apply(pd.to_datetime)
-
-# Seta a data como o indice
-# floripa.set_index('date', inplace=True)
 
 # Antes de exibir o primeiro plot, define uma funcao utilitaria
 # para formatar bonitinho o(s) ultimo(s) plots de data (eixo x)
@@ -46,10 +60,16 @@ plt.plot(floripa.date, floripa.confirmed, marker='o')
 format_confirmed_by_date_plot()
 plt.show()
 
-# --- Define algumas funcoes dos modelos
+
+# --- Define funcoes dos modelos ---
+
 
 def linear_fit(slope, intercept):
     return lambda x: intercept + slope * x
+
+
+# --- Predicoes com os modelos ---
+
 
 # Cria coluna id_date com representacao numerica da data
 # (para poder aplicar os modelos)
