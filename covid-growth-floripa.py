@@ -25,7 +25,7 @@ data.head(10)
 data.describe(include='all')
 
 # Converte coluna de data para datetime
-data.date = floripa.date.apply(pd.to_datetime)
+data.date = data.date.apply(pd.to_datetime)
 
 # Exibe correlacao de casos confirmados com populacao estimada
 data[['confirmed', 'estimated_population_2019']].corr()
