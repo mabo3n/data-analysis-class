@@ -64,8 +64,11 @@ plt.show()
 # --- Define funcoes dos modelos ---
 
 
-def linear_fit(slope, intercept):
+def linear_model(slope, intercept):
     return lambda x: intercept + slope * x
+
+def exponential_model(a, b):
+    return lambda x: a * np.exp(b * x)
 
 
 # --- Predicoes com os modelos ---
@@ -75,17 +78,84 @@ def linear_fit(slope, intercept):
 # (para poder aplicar os modelos)
 floripa['id_date'] = pd.factorize(floripa.date)[0]
 
+
+# --- Modelo linear ---
+
+
 # Cria um modelo linear
 x = floripa.id_date
 y = floripa.confirmed
-linear_model = linregress(x, y)
+linear_regression = linregress(x, y)
 
 # Define uma funcao que aplica o modelo linear em um array
-f = lambda x: linear_fit(linear_model.slope, linear_model.intercept)(x)
+linear_fit = lambda x: linear_model(linear_regression.slope,
+                                    linear_regression.intercept)(x)
+# Cria uma alias para a funcao
+f = linear_fit
 
 # Plota os valores reais
 plt.plot(floripa.date, floripa.confirmed, 'b.-', label='Reais')
 # junto com os valores preditos com o modelo
 plt.plot(floripa.date, f(floripa.id_date), 'r.-', label='Modelo linear')
 format_confirmed_by_date_plot(legend=True)
+plt.title('r = {}'.format(linear_regression.rvalue))
+plt.show()
+
+
+# --- Modelo linear do log ---
+
+
+# Cria um modelo linear do log de confirmados
+x = floripa.id_date
+y = floripa.confirmed.apply(np.log)
+linear_log_regression = linregress(x, y)
+
+# Define uma funcao que aplica o modelo linear em um array
+linear_log_fit = lambda x: linear_model(linear_log_regression.slope,
+                                        linear_log_regression.intercept)(x)
+# Cria um alias que aplica a funcao e exponencia o elemento (inventei a palavra)
+f = lambda x: np.exp(linear_log_fit(x))
+
+# Plota os valores reais
+plt.plot(floripa.date, floripa.confirmed, 'b.-', label='Reais')
+# junto com os valores preditos com o modelo
+plt.plot(floripa.date, f(floripa.id_date), 'r.-', label='Modelo linear do log')
+format_confirmed_by_date_plot(legend=True)
+plt.title('r = {}'.format(linear_log_regression.rvalue))
+plt.show()
+
+
+# --- Modelo exponencial ---
+
+
+# Define coeficientes do ultimo modelo como parametros iniciais
+initial_guess = (linear_log_regression.intercept,
+                  linear_log_regression.slope)
+
+# Define uma funcao que recebe os dados e os coeficientes,
+# a qual sera utilizada para ajustar o modelo
+function_to_fit = lambda x, a, b: exponential_model(a, b)(x)
+
+# Ajusta a funcao definida acima para dar fit nos dados,
+# com metodo de minimos quadrados nao-linear
+x = floripa.id_date
+y = floripa.confirmed
+estimated_coefficients, _ = curve_fit(function_to_fit, x, y, initial_guess)
+
+# Define uma funcao que aplica o modelo exponencial
+# com os coeficientes estimados em um array
+exponential_fit = lambda x: (exponential_model(estimated_coefficients[0],
+                                               estimated_coefficients[1]))(x)
+# Cria uma alias para a funcao
+f = lambda x: exponential_fit(x)
+
+# Calcula manualmente o pearson's r (coeficiente de correlacao)
+r = np.corrcoef(y, f(x))[0][1]
+
+# Plota os valores reais
+plt.plot(floripa.date, floripa.confirmed, 'b.-', label='Reais')
+# junto com os valores preditos com o modelo
+plt.plot(floripa.date, f(floripa.id_date), 'r.-', label='Modelo exponencial')
+format_confirmed_by_date_plot(legend=True)
+plt.title('r = {}'.format(r))
 plt.show()
