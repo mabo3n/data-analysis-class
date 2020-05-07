@@ -76,7 +76,7 @@ def exponential_model(a, b):
 
 # Cria coluna id_date com representacao numerica da data
 # (para poder aplicar os modelos)
-floripa['id_date'] = pd.factorize(floripa.date)[0]
+floripa['id_date'] = pd.factorize(floripa.date, sort=True)[0]
 
 
 # --- Modelo linear ---
