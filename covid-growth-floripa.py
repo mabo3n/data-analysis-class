@@ -166,3 +166,22 @@ plt.plot(floripa.date, f(floripa.id_date), 'r.-', label='Modelo exponencial')
 format_confirmed_by_date_plot(legend=True)
 plt.title('r = {}'.format(r))
 plt.show()
+
+
+# --- Visao geral ---
+
+
+# Plota todos os modelos junto com os casos reais
+x = floripa.date
+plt.plot(x, floripa.confirmed,
+         'o-b', linewidth=2, label='Reais')
+plt.plot(x, linear_fit(floripa.id_date),
+         '.-r', alpha=.3, label='Modelo linear')
+plt.plot(x, linear_log_fit(floripa.id_date),
+         '.-g', alpha=.3, label='Modelo linear do log(x)')
+plt.plot(x, exponential_fit(floripa.id_date),
+         '.-y', alpha=.3, label='Modelo exponencial')
+format_confirmed_by_date_plot(legend=True)
+plt.ylim((-20,450))
+plt.title('Covid Floripa')
+plt.show()
