@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt          # Plotagem de graficos
 import pandas as pd                      # Manipulacao de datasets
 from scipy.stats import linregress       # Regressao linear
 from scipy.optimize import curve_fit     # Regressao nao-linear
+from scipy.stats.distributions import t  # Distribuicao de t student
 
 # Configura para nao cortar exibicao de datasets no terminal
 pd.options.display.max_columns = None
@@ -35,6 +36,55 @@ plt.scatter(data.estimated_population_2019, data.confirmed)
 plt.show()
 
 
+# --- Funcoes utilitarias ---
+
+
+# Funcao para formatar bonitinho o ultimo grafico criado,
+# sendo ele de data no eixo x e casos confirmados ou
+# preditos no eixo y
+def format_confirmed_by_date_plot(**kwargs):
+    plt.xticks(rotation=20)
+    plt.xlabel('Data')
+    plt.ylabel('Casos confirmados')
+    if kwargs.get('legend'):
+        plt.legend()
+
+# Funcao que calcula e retorna valores minimos e maximos
+# para os coeficientes estimados em um modelo, baseando-se
+# em um intervalo de confianca de 95%.
+# Este calculo e baseado no disposto neste link:
+# http://kitchingroup.cheme.cmu.edu/blog/2013/02/12/Nonlinear-curve-fitting-with-parameter-confidence-intervals/
+def get_lower_and_upper_coefs(data_length, coefs, coefs_covariance):
+
+    # Nivel alpha para o intervalo. Um nivel alpha de 0.05
+    # representa um intervalo de confianca de 95% (100*(1-alpha))
+    alpha = 0.05
+
+    # Calcula quantos graus de liberdade temos
+    # de acordo com o tamanho da amostra e a quantidade de coeficientes
+    degrees_of_freedom = max(0, data_length - len(coefs))
+
+    # Valor na distribuicao de t student onde beiramos o
+    # intervalo de confianca (no lado positivo, considerando os 2)
+    t_critical_value = t.ppf(1.0-alpha/2., degrees_of_freedom)
+
+    # Calcula o erro padrao para cada um dos parametros estimados
+    # a partir da diagonal da matriz de covarianca dos coeficientes
+    standard_errors = np.sqrt(np.diag(coefs_covariance))
+    print(standard_errors)
+
+    # Cria uma funcao que recece um coeficiente e seu erro padrao
+    # e retorna uma tupla com os valores minimos e maximos para
+    # o coeficiente
+    get_coef_bounds = \
+        lambda coef, std_error: (coef - std_error * t_critical_value,
+                                 coef + std_error * t_critical_value)
+
+    # Retorna o resultado da funcao acima aplicada para
+    # cada um dos grupos de coeficiente/erro padrao 
+    return list(map(get_coef_bounds, coefs, standard_errors))
+
+
 # --- Analise dos dados de floripa ---
 
 
@@ -44,16 +94,6 @@ floripa = data[data.city.str.contains('Floria', na=False)]
 # Visao geral dos dados de Floripa
 floripa.head()
 floripa.describe()
-
-# Antes de exibir o primeiro plot, define uma funcao utilitaria
-# para formatar bonitinho o(s) ultimo(s) plots de data (eixo x)
-# por casos confirmados ou preditos (eixo y)
-def format_confirmed_by_date_plot(**kwargs):
-    plt.xticks(rotation=20)
-    plt.xlabel('Data')
-    plt.ylabel('Casos confirmados')
-    if kwargs.get('legend'):
-        plt.legend()
 
 # Plota casos confirmados no decorrer do tempo
 plt.plot(floripa.date, floripa.confirmed, marker='o')
