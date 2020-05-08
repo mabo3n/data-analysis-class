@@ -175,7 +175,7 @@ plt.show()
 
 # Define coeficientes do ultimo modelo como parametros iniciais
 initial_guess = (linear_log_regression.intercept,
-                  linear_log_regression.slope)
+                 linear_log_regression.slope)
 
 # Define uma funcao que recebe um array e coeficientes,
 # a qual sera utilizada para ajustar o modelo
@@ -185,24 +185,39 @@ function_to_fit = lambda x, a, b: exponential_model(a, b)(x)
 # com metodo de minimos quadrados nao-linear
 x = floripa.id_date
 y = floripa.confirmed
-estimated_coefficients, _ = curve_fit(function_to_fit,
-                                      x, y,
-                                      initial_guess)
+estimated_coefs, estimated_coefs_covariance = \
+    curve_fit(function_to_fit, x, y, initial_guess)
 
 # Define uma funcao que aplica o modelo exponencial
 # com os coeficientes estimados
-a, b = estimated_coefficients
+a, b = estimated_coefs
 exponential_fit = exponential_model(a, b)
-# Cria uma alias para a funcao
+
+# Define outras 2 funcoes que aplicam o mesmo modelo,
+# no entanto com os valores minimos e maximos para o
+# coeficientes (em um intervalo de 95% de confianca)
+(a_lower, a_upper), (b_lower, b_upper) = \
+    get_lower_and_upper_coefs(len(x),
+                              estimated_coefs,
+                              estimated_coefs_covariance)
+exponential_lower_fit = exponential_model(a_lower, b_lower)
+exponential_upper_fit = exponential_model(a_upper, b_upper)
+
+# Cria aliases para as funcoes
 f = exponential_fit
+f_lwr = exponential_lower_fit
+f_upr = exponential_upper_fit
 
 # Calcula manualmente o pearson's r (coeficiente de correlacao)
 r = np.corrcoef(y, f(x))[0][1]
 
 # Plota os valores reais
-plt.plot(floripa.date, floripa.confirmed, 'b.-', label='Reais')
-# junto com os valores preditos com o modelo
-plt.plot(floripa.date, f(floripa.id_date), 'r.-', label='Modelo exponencial')
+plt.plot(floripa.date, floripa.confirmed, 'o-b', label='Reais')
+# e os valores preditos com o modelo
+plt.plot(floripa.date, f(floripa.id_date), '.-r', label='Modelo exponencial')
+# e os valores do intervalo de confianca do modelo
+plt.plot(floripa.date, f_lwr(floripa.id_date), '-r', alpha=.3)
+plt.plot(floripa.date, f_upr(floripa.id_date), '-r', alpha=.3)
 format_confirmed_by_date_plot(legend=True)
 plt.title('r = {}'.format(r))
 plt.show()
