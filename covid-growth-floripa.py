@@ -227,6 +227,7 @@ plt.show()
 
 # --- Modelo logistico ---
 
+
 # Captura estimativa mais recente da populacao
 most_recent_estimated_population = int(
     floripa[floripa.date == floripa.date.max()]\
@@ -284,20 +285,37 @@ plt.annotate('r = {}'.format(r), xy=(.6, .12), xycoords='figure fraction')
 plt.show()
 
 
-# --- Visao geral ---
+# --- Predicao com os modelos ---
 
 
-# Plota todos os modelos junto com os casos reais
-x = floripa.date
-plt.plot(x, floripa.confirmed,
-         'o-b', linewidth=2, label='Reais')
-plt.plot(x, linear_fit(floripa.id_date),
-         '.-r', alpha=.3, label='Modelo linear')
-plt.plot(x, linear_log_fit(floripa.id_date),
-         '.-g', alpha=.3, label='Modelo linear do log(x)')
-plt.plot(x, exponential_fit(floripa.id_date),
-         '.-y', alpha=.3, label='Modelo exponencial')
+# Cria lista de novas datas para as quais
+# sera predito os casos confirmados com cada modelo
+new_dates_amount = 10
+last_date = sorted(floripa.date)[-1]
+days = lambda x: pd.Timedelta(f'{x}D')
+prediction_dates = pd.date_range(last_date + days(1),
+                                 last_date + days(new_dates_amount))
+
+# Cria nova sequencia de datas e identificador numerico de datas
+# incluindo datas presentes e novas datas para predicao
+new_dates = [*sorted(floripa.date), *list(prediction_dates)]
+new_id_dates = pd.factorize(new_dates, sort=True)[0]
+
+# Plota os casos reais
+plt.plot(floripa.date, floripa.confirmed,
+         'ob', linewidth=2, label='Reais')
+# e todos os modelos com as predicoes
+x = new_dates
+x_id = new_id_dates
+plt.plot(x, linear_fit(x_id),
+         '-r', alpha=.6, label='Modelo linear')
+plt.plot(x, linear_log_fit(x_id),
+         '-g', alpha=.6, label='Modelo linear do log de casos reais')
+plt.plot(x, exponential_fit(x_id),
+         '-y', alpha=.6, label='Modelo exponencial')
+plt.plot(x, logistic_fit(x_id),
+         '-k', alpha=.6, label='Modelo logístico')
 format_confirmed_by_date_plot(legend=True)
-plt.ylim((-20,450))
-plt.title('Covid Floripa')
+plt.ylim((-20,500))
+plt.title('Comparativo de modelos - COVID-19 Florianópolis')
 plt.show()
