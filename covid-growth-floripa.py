@@ -110,6 +110,8 @@ def linear_model(a, b):
 def exponential_model(a, b):
     return lambda x: a * np.exp(b * x)
 
+def logistic_model(a, b, C):
+    return lambda x: C / (1 + np.exp(-(a + b * x)))
 
 # --- Predicoes com os modelos ---
 
@@ -220,6 +222,65 @@ plt.plot(floripa.date, f_lwr(floripa.id_date), '-r', alpha=.3)
 plt.plot(floripa.date, f_upr(floripa.id_date), '-r', alpha=.3)
 format_confirmed_by_date_plot(legend=True)
 plt.title('r = {}'.format(r))
+plt.show()
+
+
+# --- Modelo logistico ---
+
+# Captura estimativa mais recente da populacao
+most_recent_estimated_population = int(
+    floripa[floripa.date == floripa.date.max()]\
+        .estimated_population_2019)
+
+# Define coeficientes do penultimo modelo como parametros iniciais
+initial_guess = (linear_log_regression.intercept,
+                 linear_log_regression.slope,
+                 most_recent_estimated_population)
+
+# Define uma funcao que recebe um array e coeficientes,
+# a qual sera utilizada para ajustar o modelo
+function_to_fit = lambda x, a, b, c: logistic_model(a, b, c)(x)
+
+# Ajusta a funcao definida acima para dar fit nos dados,
+# com metodo de minimos quadrados nao-linear
+x = floripa.id_date
+y = floripa.confirmed
+estimated_coefs, estimated_coefs_covariance = \
+    curve_fit(function_to_fit, x, y, initial_guess)
+
+# Define uma funcao que aplica o modelo logistico
+# com os coeficientes estimados
+a, b, c = estimated_coefs
+logistic_fit = logistic_model(a, b, c)
+
+# Define outras 2 funcoes que aplicam o mesmo modelo,
+# no entanto com os valores minimos e maximos para o
+# coeficientes (em um intervalo de 95% de confianca)
+(a_lower, a_upper), (b_lower, b_upper), (c_lower, c_upper) = \
+    get_lower_and_upper_coefs(len(x),
+                              estimated_coefs,
+                              estimated_coefs_covariance)
+logistic_lower_fit = logistic_model(a_lower, b_lower, c_lower)
+logistic_upper_fit = logistic_model(a_upper, b_upper, c_upper)
+
+# Cria aliases para as funcoes
+f = logistic_fit
+f_lwr = logistic_lower_fit
+f_upr = logistic_upper_fit
+
+# Calcula manualmente o pearson's r (coeficiente de correlacao)
+r = np.corrcoef(y, f(x))[0][1]
+
+# Plota os valores reais
+plt.plot(floripa.date, floripa.confirmed, 'ob', label='Reais')
+# e os valores preditos com o modelo
+plt.plot(floripa.date, f(floripa.id_date), '.-r', label='Modelo logístico')
+# e os valores do intervalo de confianca do modelo
+plt.plot(floripa.date, f_lwr(floripa.id_date), '-r', alpha=.3)
+plt.plot(floripa.date, f_upr(floripa.id_date), '-r', alpha=.3)
+format_confirmed_by_date_plot(legend=True)
+plt.title('Previsão com um modelo logístico')
+plt.annotate('r = {}'.format(r), xy=(.6, .12), xycoords='figure fraction')
 plt.show()
 
 
