@@ -18,7 +18,7 @@ pd.options.display.width = 200
 
 
 # Le arquivo em um dataframe
-path = './covid19-Mar-18-2020.csv'
+path = './covid19-02-05-2020.csv'
 data = pd.read_csv(path, sep=',', decimal='.', quotechar='\'')
 
 # Visao geral dos dados
@@ -89,7 +89,7 @@ def get_lower_and_upper_coefs(data_length, coefs, coefs_covariance):
 
 
 # Filtro de dados onde a cidade contem "Floria", ignorando NA
-floripa = data[data.city.str.contains('Floria', na=False)]
+floripa = data[data.city.str.contains('Florianópolis', na=False)]
 
 # Visao geral dos dados de Floripa
 floripa.head()
