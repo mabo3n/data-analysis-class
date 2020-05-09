@@ -81,7 +81,7 @@ def get_lower_and_upper_coefs(data_length, coefs, coefs_covariance):
                                  coef + std_error * t_critical_value)
 
     # Retorna o resultado da funcao acima aplicada para
-    # cada um dos grupos de coeficiente/erro padrao 
+    # cada um dos grupos de coeficiente/erro padrao
     return list(map(get_coef_bounds, coefs, standard_errors))
 
 
@@ -94,6 +94,8 @@ floripa = data[data.city.str.contains('Florianópolis', na=False)]
 # Visao geral dos dados de Floripa
 floripa.head()
 floripa.describe()
+
+floripa = floripa.sort_values(by='date').reset_index(drop=True)
 
 # Plota casos confirmados no decorrer do tempo
 plt.plot(floripa.date, floripa.confirmed, marker='o')
@@ -291,14 +293,14 @@ plt.show()
 # Cria lista de novas datas para as quais
 # sera predito os casos confirmados com cada modelo
 new_dates_amount = 10
-last_date = sorted(floripa.date)[-1]
+last_date = floripa.date.iloc[-1]
 days = lambda x: pd.Timedelta(f'{x}D')
 prediction_dates = pd.date_range(last_date + days(1),
                                  last_date + days(new_dates_amount))
 
 # Cria nova sequencia de datas e identificador numerico de datas
 # incluindo datas presentes e novas datas para predicao
-new_dates = [*sorted(floripa.date), *list(prediction_dates)]
+new_dates = [*floripa.date, *list(prediction_dates)]
 new_id_dates = pd.factorize(new_dates, sort=True)[0]
 
 # Plota os casos reais
