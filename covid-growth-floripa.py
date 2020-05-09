@@ -45,9 +45,9 @@ plt.show()
 def format_confirmed_by_date_plot(**kwargs):
     plt.xticks(rotation=20)
     plt.xlabel('Data')
-    plt.ylabel('Casos confirmados')
+    plt.ylabel('Número de casos')
     if kwargs.get('legend'):
-        plt.legend()
+        plt.legend(loc='best')
 
 # Funcao que calcula e retorna valores minimos e maximos
 # para os coeficientes estimados em um modelo, baseando-se
@@ -321,3 +321,40 @@ format_confirmed_by_date_plot(legend=True)
 plt.ylim((-20,500))
 plt.title('Comparativo de modelos - COVID-19 Florianópolis')
 plt.show()
+
+
+# --- Predicao com modelo exponencial + novos casos reais ---
+
+
+future_confirmed = (('2020-05-02', 326),
+                    ('2020-05-03', 347),
+                    ('2020-05-04', 353),
+                    ('2020-05-05', 369),
+                    ('2020-05-06', 375),
+                    ('2020-05-07', 371),
+                    ('2020-05-08', 373))
+
+future_dates, future_confirmed = zip(*future_confirmed)
+future_dates = list(pd.to_datetime(future_dates))
+
+f = exponential_fit
+f_lwr = exponential_lower_fit
+f_upr = exponential_upper_fit
+
+# Define tamanho inicial para figura
+plt.figure(figsize=(10,7))
+# Plota os valores reais
+plt.plot(floripa.date, floripa.confirmed, 'ob', label='Confirmados')
+# e os valores reais do futuro
+plt.plot(future_dates, future_confirmed, '+b', alpha=.2, label='Confirmados futuramente')
+# e os valores preditos com o modelo
+x = new_dates
+x_id = new_id_dates
+plt.plot(x, f(x_id), '-r', label='Previstos')
+# e os valores do intervalo de confianca do modelo
+plt.plot(x, f_lwr(x_id), '-r', alpha=.2)
+plt.plot(x, f_upr(x_id), '-r', alpha=.2)
+format_confirmed_by_date_plot(legend=True)
+plt.title('Previsão de infectados - Florianópolis (SC)')
+plt.show()
+
