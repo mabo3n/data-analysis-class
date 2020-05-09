@@ -325,7 +325,7 @@ plt.show()
 
 # --- Predicao com modelo exponencial + novos casos reais ---
 
-
+# Guarda novos casos reais, verificados posteriormente
 future_confirmed = (('2020-05-02', 326),
                     ('2020-05-03', 347),
                     ('2020-05-04', 353),
@@ -334,9 +334,12 @@ future_confirmed = (('2020-05-02', 326),
                     ('2020-05-07', 371),
                     ('2020-05-08', 373))
 
+# Cria arrays separados de novos casos e datas para plotar
 future_dates, future_confirmed = zip(*future_confirmed)
 future_dates = list(pd.to_datetime(future_dates))
 
+# Recupera aliases para o modelo exponencial
+# (que foi construido sem os novos valores acima)
 f = exponential_fit
 f_lwr = exponential_lower_fit
 f_upr = exponential_upper_fit
@@ -344,17 +347,31 @@ f_upr = exponential_upper_fit
 # Define tamanho inicial para figura
 plt.figure(figsize=(10,7))
 # Plota os valores reais
-plt.plot(floripa.date, floripa.confirmed, 'ob', label='Confirmados')
+plt.plot(floripa.date, floripa.confirmed,
+         'ob', label='Confirmados')
 # e os valores reais do futuro
-plt.plot(future_dates, future_confirmed, '+b', alpha=.2, label='Confirmados futuramente')
+plt.plot(future_dates, future_confirmed,
+         '+b', alpha=.2, label='Confirmados futuramente')
 # e os valores preditos com o modelo
 x = new_dates
 x_id = new_id_dates
-plt.plot(x, f(x_id), '-r', label='Previstos')
+plt.plot(x, f(x_id), '-r', label='Previstos com modelagem exponencial')
 # e os valores do intervalo de confianca do modelo
 plt.plot(x, f_lwr(x_id), '-r', alpha=.2)
 plt.plot(x, f_upr(x_id), '-r', alpha=.2)
+# e a funcao do modelo
+plt.annotate(r'$y = a\it e ^{bx}$',
+             xy=(.20,.25), xycoords='figure fraction',
+             fontsize=12, color='red',
+             bbox=dict(boxstyle="round", fc="w"))
+# e o dia da reducao por casos duplicados
+plt.annotate('Correção de dados duplicados', alpha=.2,
+             xy=('2020-05-02', 460), xycoords='data',
+             xytext=(-100, 220), textcoords='offset points',
+             arrowprops=dict(arrowstyle='-|>',
+                             connectionstyle="arc3,rad=-0.25",
+                             facecolor='gray', alpha=.2))
+# plt.text(0.5, 0.5, 'matplotlib', transform=ax.transAxes)
 format_confirmed_by_date_plot(legend=True)
-plt.title('Previsão de infectados - Florianópolis (SC)')
+plt.title('01/05/2020\nPrevisão de infectados - Florianópolis (SC)')
 plt.show()
-
